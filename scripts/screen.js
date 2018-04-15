@@ -14,35 +14,45 @@ $(document).ready(() => {
         /*  Canvas  */
         var canvas = document.getElementById('screen');
         var ctx = canvas.getContext('2d');
-        var users = [];
 
         /*  Player logic    */
+        var users = [];
         var player = {
             x: 0,
             y: 0
         };
+        var keyState = {};
 
-        $(document).on('keypress', (e) => {
-            switch (e.which) {
-            case 119:    // up
-                player.y -= speed;
-                break;
-            case 115:    // down
-                player.y += speed;
-                break;
-            case 97:    // left
+        window.addEventListener('keydown', (e) => {
+            keyState[e.keyCode || e.which] = true;
+        },true);
+
+        window.addEventListener('keyup', (e) => {
+            keyState[e.keyCode || e.which] = false;
+        },true);
+
+        function update() {
+            var updated = false;
+            if(keyState[37] && player.x > 0) {
                 player.x -= speed;
-                break;
-            case 100:    // right
+                updated = true;
+            } else if(keyState[39] && player.x < ctx.canvas.width) {
                 player.x += speed;
-                break;
-            default:
-                return;
+                updated = true;
             }
-            e.preventDefault();
-            drawPlayers();
-            socket.emit('message', {x: player.x, y: player.y});
-        });
+            if(keyState[38] && player.y > 0) {
+                player.y -= speed;
+                updated = true;
+            } else if(keyState[40] && player.y < ctx.canvas.height) {
+                player.y += speed;
+                updated = true;
+            }
+            if(updated) {
+                drawPlayers();
+                socket.emit('message', {x: player.x, y: player.y});
+            }
+            setTimeout(update, 10);
+        }
 
         function clear() {
             ctx.fillStyle = 'white';
@@ -65,5 +75,7 @@ $(document).ready(() => {
             users = msg;
             drawPlayers();
         });
+
+        update();
     });
 });
