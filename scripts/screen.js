@@ -14,6 +14,7 @@ $(document).ready(() => {
         /*  Canvas  */
         var canvas = document.getElementById('screen');
         var ctx = canvas.getContext('2d');
+        var users = [];
 
         /*  Player logic    */
         var player = {
@@ -39,20 +40,30 @@ $(document).ready(() => {
                 return;
             }
             e.preventDefault();
-            draw();
+            drawPlayers();
             socket.emit('message', {x: player.x, y: player.y});
         });
 
-        function draw() {
+        function clear() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+
+        function drawPlayers() {
+            clear();
+            for (var u in users) {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(users[u].x, users[u].y, 10, 10);
+            }
             ctx.fillRect(player.x, player.y, 10, 10);
         }
 
-        draw();
         ctx.canvas.width = $(window).width();
         ctx.canvas.height = $(window).height();
 
         socket.on('broadcast', (msg) => {
-            ctx.fillRect(msg.x, msg.y, 10, 10);
+            users = msg;
+            drawPlayers();
         });
     });
 });

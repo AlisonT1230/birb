@@ -5,12 +5,13 @@
   "main": "screen.js",
   "dependencies": {
     "express": "^4.16.3",
-    "socket.io": "^2.1.0"
+    "socket.io": "^2.1.0",
+    "socket.io.users": "^2.0.2"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC"
