@@ -27,7 +27,9 @@ io.on('connection', function(socket) {
     users.push({
         id: socket.id,
         x: 0,
-        y: 0
+        y: 0,
+        r: 30,
+        legHeight: 10
     });
 
     //Whenever someone disconnects this piece of code executed
@@ -41,11 +43,12 @@ io.on('connection', function(socket) {
     });
 
     socket.on('message', (msg) => {
-        console.log(msg);
-        console.log(socket.id);
         var user = getUser(socket.id);
         user.x = msg.x;
         user.y = msg.y;
+        user.r = msg.r;
+        user.legHeight = msg.legHeight;
+        user.imgsrc = msg.imgsrc;
         socket.broadcast.emit('broadcast', users);
         socket.emit('broadcast', users);
     });

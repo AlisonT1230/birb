@@ -14,14 +14,22 @@ $(document).ready(() => {
         /*  Canvas  */
         var canvas = document.getElementById('screen');
         var ctx = canvas.getContext('2d');
+        ctx.canvas.width = $(window).width();
+        ctx.canvas.height = $(window).height();
 
         /*  Player logic    */
         var users = [];
+        var gravity = 1.15;
         var player = {
-            x: 0,
-            y: 0
+            x: 50,
+            y: 10,
+            r: 30,
+            legHeight: 10,
+            dy: 0,
+            imgsrc: '../assets/images/birb.png'
         };
         var keyState = {};
+        var ground = 500;
 
         window.addEventListener('keydown', (e) => {
             keyState[e.keyCode || e.which] = true;
@@ -33,23 +41,35 @@ $(document).ready(() => {
 
         function update() {
             var updated = false;
-            if(keyState[37] && player.x > 0) {
+            player.dy += gravity;
+
+            if(player.y + player.r + player.legHeight > ground) {
+                player.y = ground - player.r - player.legHeight;
+                player.dy = 0;
+                updated = true;
+            } else if (player.y + player.r + player.legHeight < ground){
+                if (player.dy == 0) {
+                    player.dy = gravity;
+                }
+                player.y += player.dy;
+                updated = true;
+            }
+
+            if(keyState[37] && player.x - player.r > 0) {
                 player.x -= speed;
                 updated = true;
-            } else if(keyState[39] && player.x < ctx.canvas.width) {
+            } else if(keyState[39] && player.x + player.r < ctx.canvas.width) {
                 player.x += speed;
                 updated = true;
             }
-            if(keyState[38] && player.y > 0) {
-                player.y -= speed;
-                updated = true;
-            } else if(keyState[40] && player.y < ctx.canvas.height) {
-                player.y += speed;
+            if(keyState[38] && player.y > 0 && player.y + player.r + player.legHeight == ground) {  // up
+                player.dy = -30;
+                player.y += player.dy;
                 updated = true;
             }
             if(updated) {
                 drawPlayers();
-                socket.emit('message', {x: player.x, y: player.y});
+                socket.emit('message', player);
             }
             setTimeout(update, 10);
         }
@@ -59,17 +79,37 @@ $(document).ready(() => {
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         }
 
+        function drawPlayer(p) {
+            ctx.fillStyle = '#ff9900';
+            ctx.beginPath();
+            ctx.moveTo(p.x - p.r/2, p.y + p.r/2);
+            ctx.lineTo(p.x - p.r/2 + 1, p.y + p.r/2)
+            ctx.lineTo(p.x - p.r/2 + 1, p.y + p.r + p.legHeight);
+            ctx.lineTo(p.x - p.r/2, p.y + p.r + p.legHeight);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(p.x + p.r/2, p.y + p.r/2);
+            ctx.lineTo(p.x + p.r/2 + 1, p.y + p.r/2);
+            ctx.lineTo(p.x + p.r/2 + 1, p.y + p.r + p.legHeight);
+            ctx.lineTo(p.x + p.r/2, p.y + p.r + p.legHeight);
+            ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            var img = document.createElement('img');
+            img.src = p.imgsrc;
+            ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.restore();
+        }
+
         function drawPlayers() {
             clear();
             for (var u in users) {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(users[u].x, users[u].y, 10, 10);
+                drawPlayer(users[u]);
             }
-            ctx.fillRect(player.x, player.y, 10, 10);
+            drawPlayer(player);
         }
-
-        ctx.canvas.width = $(window).width();
-        ctx.canvas.height = $(window).height();
 
         socket.on('broadcast', (msg) => {
             users = msg;
