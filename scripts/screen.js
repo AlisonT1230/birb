@@ -29,7 +29,8 @@ $(document).ready(() => {
             imgsrc: '../assets/images/birb.png'
         };
         var keyState = {};
-        var ground = 500;
+        var ground = 700;
+        var left = true;
 
         window.addEventListener('keydown', (e) => {
             keyState[e.keyCode || e.which] = true;
@@ -58,9 +59,11 @@ $(document).ready(() => {
             if(keyState[37] && player.x - player.r > 0) {
                 player.x -= speed;
                 updated = true;
+                left = true;
             } else if(keyState[39] && player.x + player.r < ctx.canvas.width) {
                 player.x += speed;
                 updated = true;
+                left = false;
             }
             if(keyState[38] && player.y > 0 && player.y + player.r + player.legHeight == ground) {  // up
                 player.dy = -30;
@@ -97,8 +100,14 @@ $(document).ready(() => {
             ctx.beginPath();
             var img = document.createElement('img');
             img.src = p.imgsrc;
-            ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2, true);
+            if(!left) {
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(img, -p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+                ctx.restore();
+            } else {
+                ctx.drawImage(img, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+            }
             ctx.closePath();
             ctx.restore();
         }
